@@ -1,0 +1,6 @@
+{
+  "prefix": "{grey}[{red}PassChanger{grey}] {red}➜{default}",
+  "password.removed": "Server password has been {red}removed{default}.",
+  "password.changed": "The new server password is: {green}{0}{default}",
+  "no.permission": "You {red}do not have permission{default} to use this command."
+}
