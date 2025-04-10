@@ -22,6 +22,9 @@ The `PassChanger.json` configuration file will be automatically generated when t
 
 | Parameter      | Description                                                                                              |
 |---------------|----------------------------------------------------------------------------------------------------------|
+| `PermissionFlag` | The permission flag required to use the command. Default is `@css/generic`. |
+| `AllowPasswordRemoval` | If enabled (`true`), allows removing the password. Default is `true`. |
+| `PasswordApplyDelay` | The delay in seconds before applying the password. Default is `2.0`. |
 | `EnableDebug` | If enabled (`true`), it will display debug messages in the server console.                               |
 
 ---

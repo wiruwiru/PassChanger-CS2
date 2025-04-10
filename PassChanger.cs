@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Timers;
 using System.Text.Json;
 
 namespace PassChanger;
@@ -18,7 +19,7 @@ public class PasswordData
 public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 {
 	public override string ModuleName => "PassChanger";
-	public override string ModuleVersion => "1.0.0";
+	public override string ModuleVersion => "1.0.1";
 	public override string ModuleAuthor => "luca.uy";
 	public override string ModuleDescription => "Allows server administrators to set a password for the server from a command, without the need to access server.cfg";
 
@@ -59,12 +60,32 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 
 	private void OnMapStart(string mapName)
 	{
-		var password = LoadPassword();
-		if (!string.IsNullOrEmpty(password))
+		float delaySeconds = Config?.PasswordApplyDelay ?? 3.0f;
+
+		AddTimer(delaySeconds, () =>
 		{
-			Server.ExecuteCommand($"sv_password {password}");
-			Utils.DebugMessage($"Password automatically loaded on map {mapName}");
-		}
+			var password = LoadPassword();
+			if (!string.IsNullOrEmpty(password) || (Config != null && Config.AllowPasswordRemoval))
+			{
+				Server.ExecuteCommand(string.IsNullOrEmpty(password)
+					? "sv_password \"\""
+					: $"sv_password \"{password}\"");
+
+				Utils.DebugMessage($"Password applied after {delaySeconds} seconds delay");
+
+				AddTimer(1.0f, () =>
+				{
+					var currentPass = ConVar.Find("sv_password")?.StringValue;
+					if (currentPass != password)
+					{
+						Utils.DebugMessage("Warning: Password was overwritten, reapplying...");
+						Server.ExecuteCommand(string.IsNullOrEmpty(password)
+							? "sv_password \"\""
+							: $"sv_password \"{password}\"");
+					}
+				});
+			}
+		}, TimerFlags.STOP_ON_MAPCHANGE);
 	}
 
 	[ConsoleCommand("css_changepass", "Allows to change the server password")]
@@ -74,21 +95,34 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 		if (player != null && !AdminManager.PlayerHasPermissions(player, Config.PermissionFlag))
 		{
 			string noPermissionResponse = $"{Localizer["prefix"]} {Localizer["no.permission"]}";
-			commandInfo.ReplyToCommand(noPermissionResponse);
 			player.PrintToChat(noPermissionResponse);
 			return;
 		}
 
 		var password = commandInfo.GetArg(1);
 
+		if (string.IsNullOrEmpty(password) && !Config.AllowPasswordRemoval)
+		{
+			string errorResponse = $"{Localizer["prefix"]} {Localizer["password.removal.disabled"]}";
+			if (player != null)
+			{
+				player.PrintToChat(errorResponse);
+			}
+			return;
+		}
+
 		SavePassword(password);
-		Server.ExecuteCommand($"sv_password {password}");
 
-		string passwordResponse = string.IsNullOrEmpty(password)
-			? $"{Localizer["prefix"]} {Localizer["password.removed"]}"
-			: $"{Localizer["prefix"]} {Localizer["password.changed", password]}";
+		if (string.IsNullOrEmpty(password))
+		{
+			Server.ExecuteCommand("sv_password \"\"");
+		}
+		else
+		{
+			Server.ExecuteCommand($"sv_password \"{password}\"");
+		}
 
-		commandInfo.ReplyToCommand(passwordResponse);
+		string passwordResponse = string.IsNullOrEmpty(password) ? $"{Localizer["prefix"]} {Localizer["password.removed"]}" : $"{Localizer["prefix"]} {Localizer["password.changed", password]}";
 
 		if (player != null)
 		{
