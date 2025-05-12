@@ -1,7 +1,9 @@
 {
   "prefix": "{grey}[{red}PassChanger{grey}] {red}➜{default}",
-  "password.removed": "Server password has been {red}removed{default}.",
+  "no.permission": "You do not have {red}permission{default} to use this command.",
   "password.changed": "The new server password is: {green}{0}{default}",
-  "no.permission": "You {red}do not have permission{default} to use this command.",
-  "password.removal.disabled": "Removing password is currently {red}disabled{default} by server configuration."
+  "password.current": "The current server password is: {green}{0}{default}",
+  "password.removed": "The server password has been {red}removed{default}.",
+  "password.not.set": "There is currently {red}no password{default} set for the server.",
+  "password.removal.disabled": "Password removal is currently {red}disabled{default} by server configuration."
 }

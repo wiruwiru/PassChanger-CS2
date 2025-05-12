@@ -1,7 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -19,9 +18,9 @@ public class PasswordData
 public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 {
 	public override string ModuleName => "PassChanger";
-	public override string ModuleVersion => "1.0.1";
+	public override string ModuleVersion => "1.0.2";
 	public override string ModuleAuthor => "luca.uy";
-	public override string ModuleDescription => "Allows server administrators to set a password for the server from a command, without the need to access server.cfg";
+	public override string ModuleDescription => "Set a password for the server from a command.";
 
 	private string _configPath => Path.Combine(ModuleDirectory, "password_data.json");
 
@@ -56,6 +55,13 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 		}
 
 		RegisterListener<Listeners.OnMapStart>(OnMapStart);
+		RegisterCommandHandlers();
+	}
+
+	private void RegisterCommandHandlers()
+	{
+		AddCommand(Config.ChangePassCommand, "Allows to change the server password", OnChangePasswordCommand);
+		AddCommand(Config.CurrentPassCommand, "Show current server password", OnCurrentPasswordCommand);
 	}
 
 	private void OnMapStart(string mapName)
@@ -67,10 +73,7 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 			var password = LoadPassword();
 			if (!string.IsNullOrEmpty(password) || (Config != null && Config.AllowPasswordRemoval))
 			{
-				Server.ExecuteCommand(string.IsNullOrEmpty(password)
-					? "sv_password \"\""
-					: $"sv_password \"{password}\"");
-
+				Server.ExecuteCommand(string.IsNullOrEmpty(password) ? "sv_password \"\"" : $"sv_password \"{password}\"");
 				Utils.DebugMessage($"Password applied after {delaySeconds} seconds delay");
 
 				AddTimer(1.0f, () =>
@@ -79,20 +82,16 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 					if (currentPass != password)
 					{
 						Utils.DebugMessage("Warning: Password was overwritten, reapplying...");
-						Server.ExecuteCommand(string.IsNullOrEmpty(password)
-							? "sv_password \"\""
-							: $"sv_password \"{password}\"");
+						Server.ExecuteCommand(string.IsNullOrEmpty(password) ? "sv_password \"\"" : $"sv_password \"{password}\"");
 					}
 				});
 			}
 		}, TimerFlags.STOP_ON_MAPCHANGE);
 	}
 
-	[ConsoleCommand("css_changepass", "Allows to change the server password")]
-	[CommandHelper(minArgs: 1, usage: "[Password]", whoCanExecute: CommandUsage.CLIENT_AND_SERVER)]
-	public void OnChangePasswordCommand(CCSPlayerController? player, CommandInfo commandInfo)
+	private void OnChangePasswordCommand(CCSPlayerController? player, CommandInfo commandInfo)
 	{
-		if (player != null && !AdminManager.PlayerHasPermissions(player, Config.PermissionFlag))
+		if (player != null && Config.ChangePassFlag != null && !AdminManager.PlayerHasPermissions(player, Config.ChangePassFlag))
 		{
 			string noPermissionResponse = $"{Localizer["prefix"]} {Localizer["no.permission"]}";
 			player.PrintToChat(noPermissionResponse);
@@ -103,10 +102,10 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 
 		if (string.IsNullOrEmpty(password) && !Config.AllowPasswordRemoval)
 		{
-			string errorResponse = $"{Localizer["prefix"]} {Localizer["password.removal.disabled"]}";
+			string removalNotAllowed = $"{Localizer["prefix"]} {Localizer["password.removal.disabled"]}";
 			if (player != null)
 			{
-				player.PrintToChat(errorResponse);
+				player.PrintToChat(removalNotAllowed);
 			}
 			return;
 		}
@@ -122,7 +121,29 @@ public class PassChanger : BasePlugin, IPluginConfig<BaseConfigs>
 			Server.ExecuteCommand($"sv_password \"{password}\"");
 		}
 
-		string passwordResponse = string.IsNullOrEmpty(password) ? $"{Localizer["prefix"]} {Localizer["password.removed"]}" : $"{Localizer["prefix"]} {Localizer["password.changed", password]}";
+		string passwordResponse = string.IsNullOrEmpty(password)
+			? $"{Localizer["prefix"]} {Localizer["password.removed"]}"
+			: $"{Localizer["prefix"]} {Localizer["password.changed", password]}";
+
+		if (player != null)
+		{
+			player.PrintToChat(passwordResponse);
+		}
+	}
+
+	private void OnCurrentPasswordCommand(CCSPlayerController? player, CommandInfo commandInfo)
+	{
+		if (player != null && Config.CurrentPassFlag != null && !AdminManager.PlayerHasPermissions(player, Config.CurrentPassFlag))
+		{
+			string noPermissionResponse = $"{Localizer["prefix"]} {Localizer["no.permission"]}";
+			player.PrintToChat(noPermissionResponse);
+			return;
+		}
+
+		var password = LoadPassword();
+		string passwordResponse = string.IsNullOrEmpty(password)
+			? $"{Localizer["prefix"]} {Localizer["password.not.set"]}"
+			: $"{Localizer["prefix"]} {Localizer["password.current", password]}";
 
 		if (player != null)
 		{

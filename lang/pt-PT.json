@@ -1,7 +1,9 @@
 {
   "prefix": "{grey}[{red}PassChanger{grey}] {red}➜{default}",
-  "password.removed": "A senha do servidor foi {red}removida{default}.",
+  "no.permission": "Você não tem {red}permissão{default} para usar este comando.",
   "password.changed": "A nova senha do servidor é: {green}{0}{default}",
-  "no.permission": "Você {red}não tem permissão{default} para usar este comando.",
-  "password.removal.disabled": "Remover a senha está atualmente {red}desativado{default} pela configuração do servidor."
+  "password.current": "A senha atual do servidor é: {green}{0}{default}",
+  "password.removed": "A senha do servidor foi {red}removida{default}.",
+  "password.not.set": "Atualmente não há {red}senha{default} definida para o servidor.",
+  "password.removal.disabled": "A remoção da senha está atualmente {red}desativada{default} pela configuração do servidor."
 }

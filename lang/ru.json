@@ -1,0 +1,9 @@
+{
+  "prefix": "{grey}[{red}PassChanger{grey}] {red}➜{default}",
+  "no.permission": "У вас нет {red}прав{default} для использования этой команды.",
+  "password.changed": "Новый пароль сервера: {green}{0}{default}",
+  "password.current": "Текущий пароль сервера: {green}{0}{default}",
+  "password.removed": "Пароль сервера был {red}удалён{default}.",
+  "password.not.set": "В настоящее время для сервера {red}не установлен{default} пароль.",
+  "password.removal.disabled": "Удаление пароля сейчас {red}отключено{default} настройками сервера."
+}

@@ -5,9 +5,17 @@ namespace PassChanger;
 
 public class BaseConfigs : BasePluginConfig
 {
+    [JsonPropertyName("ChangePassCommand")]
+    public string ChangePassCommand { get; set; } = "css_changepass";
 
-    [JsonPropertyName("PermissionFlag")]
-    public string PermissionFlag { get; set; } = "@css/generic";
+    [JsonPropertyName("ChangePassFlag")]
+    public string ChangePassFlag { get; set; } = "@css/generic";
+
+    [JsonPropertyName("CurrentPassCommand")]
+    public string CurrentPassCommand { get; set; } = "css_currentpass";
+
+    [JsonPropertyName("CurrentPassFlag")]
+    public string? CurrentPassFlag { get; set; } = "@css/generic";
 
     [JsonPropertyName("AllowPasswordRemoval")]
     public bool AllowPasswordRemoval { get; set; } = true;
